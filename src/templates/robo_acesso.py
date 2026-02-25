@@ -3,8 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-
-
+from config_dados import email, senha
 def validar_sucesso(driver: webdriver.Firefox) -> bool:
 
     try:
@@ -19,13 +18,13 @@ def validar_sucesso(driver: webdriver.Firefox) -> bool:
 def inicio(driver: webdriver.Firefox, fechar_driver: bool = True) -> bool:
     try:
 
-        email = WebDriverWait(driver, 10).until(
+        email_input = WebDriverWait(driver, 10).until(
             EC.visibility_of_element_located((By.XPATH, "//input[@name='email']"))
         )
-        email.send_keys('motor_teste@gmail.com')
+        email_input.send_keys(email)
     
-        senha = driver.find_element(By.XPATH, "//input[@name='password']")
-        senha.send_keys("Leonardo1!")
+        senha_input = driver.find_element(By.XPATH, "//input[@name='password']")
+        senha_input.send_keys(senha)
         
         #Entrar
         button = WebDriverWait(driver, 10).until(
@@ -36,7 +35,6 @@ def inicio(driver: webdriver.Firefox, fechar_driver: bool = True) -> bool:
         # validação final de sucesso
         sucesso = validar_sucesso(driver)
 
-        input("Pressione ENTER para fechar o navegador...")
         return sucesso
     except Exception as e:
         print("Erro navegação da Pagina do motor fiscal:", e)

@@ -1,8 +1,9 @@
 import os
 from templates import robo_cadastro
-from templates import robo_download_nfs
+from templates import robo_download_nfse
 from templates import robo_acesso
 from selenium import webdriver
+from config_dados import cnpj, cnpj_formatado, email, telefone, senha, razao
 
 
 def limpar():
@@ -50,7 +51,7 @@ driver.get('https://app.motorfiscal.com.br/entrar')
 if usuario == 1:
     robo_cadastro.inicio(driver)
 elif usuario == 2:
-    robo_download_nfs.inicio(driver)
+    robo_download_nfse.inicio(driver)
 elif usuario == 5:
     robo_acesso.inicio(driver)
 else:
