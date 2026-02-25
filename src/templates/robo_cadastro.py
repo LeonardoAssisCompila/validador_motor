@@ -3,10 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-
-
-#TODO lembra de coloca a função que deleta conta nesse modulo ainda
-
+from config_dados import cnpj_formatado, email, telefone, senha, razao
 def validar_sucesso(driver: webdriver.Firefox) -> bool:
 
     try:
@@ -18,7 +15,7 @@ def validar_sucesso(driver: webdriver.Firefox) -> bool:
         return False
 
 
-def inicio(driver: webdriver.Firefox):
+def inicio(driver: webdriver.Firefox, fechar_driver: bool = True) -> bool:
     try:
         button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, '//a[contains(@href, "/cadastrar")]'))
@@ -28,17 +25,16 @@ def inicio(driver: webdriver.Firefox):
         WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//span[contains(text(),"Cadastrar no MotorFiscal")]')))
         
         nome = driver.find_element(By.ID, "form_cadastro-nome")
-        nome.send_keys("Teste Motor")
+        nome.send_keys(razao)
 
-        email = driver.find_element(By.ID, "form_cadastro-email")
-        email.send_keys("motor_teste@gmail.com")
+        email_input = driver.find_element(By.ID, "form_cadastro-email")
+        email_input.send_keys(email)
 
-        telefone = driver.find_element(By.ID, "form_cadastro-telefone")
-        telefone.send_keys("11956128238")
+        telefone_input = driver.find_element(By.ID, "form_cadastro-telefone")
+        telefone_input.send_keys(telefone)
 
-        #lembra de colocar a mensagem Senha deve conter: mínimo 8 caracteres, números, letras maiúsculas, caracteres especiais
-        telefone = driver.find_element(By.ID, "form_cadastro-pass")
-        telefone.send_keys("Leonardo1!")
+        telefone_input = driver.find_element(By.ID, "form_cadastro-pass")
+        telefone_input.send_keys(senha)
 
         aceito = driver.find_element(By.ID,"form_cadastro-licensa")
         aceito.click()
@@ -51,11 +47,11 @@ def inicio(driver: webdriver.Firefox):
 
         WebDriverWait(driver,30).until(EC.visibility_of_element_located((By.ID,'form_cadastro-cnpj')))
         
-        nome = driver.find_element(By.ID, "form_cadastro-cnpj")
-        nome.send_keys("43.456.133/0001-80")
+        cnpj_input = driver.find_element(By.ID, "form_cadastro-cnpj")
+        cnpj_input.send_keys(cnpj_formatado)
 
-        email = driver.find_element(By.ID, "form_cadastro-razao")
-        email.send_keys("Teste Motor")
+        razao_input = driver.find_element(By.ID, "form_cadastro-razao")
+        razao_input.send_keys(razao)
         
         wait = WebDriverWait(driver, 10)
         
@@ -107,13 +103,14 @@ def inicio(driver: webdriver.Firefox):
         pula_depois.click()
 
         # validação final de sucesso
-        validar_sucesso(driver)
+        sucesso = validar_sucesso(driver)
 
-        input("Pressione ENTER para fechar o navegador...")
+        return sucesso
     except Exception as e:
         print("Erro navegação da Pagina do motor fiscal:", e)
+        return False
     finally:
-        if driver is not None:
+        if fechar_driver and driver is not None:
             driver.quit()
 
 if __name__ == "__main__":
