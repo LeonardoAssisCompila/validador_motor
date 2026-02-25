@@ -30,22 +30,29 @@ class Banco_Mongo():
         configuracao_conta = usuario.get("configuracao_conta") or {}
         return configuracao_conta.get("conta")
     
-    def buscar_empresa(self, nfse: Dict[str, any]) -> Dict[str, any]:
+
+    #entra na colletion empresas e consulta cnpj, adicionando servico de robotizacao
+    def adicionar_robotizacao_nfse_por_cnpj(self, cnpj: str):
         try:
-            empresa = self.db.empresas.find_one(
-                {"cnpj": nfse.get("cnpjCpfTomador")}
+            result = self.db.empresas.update_one(
+                {"cnpj": cnpj},
+                {
+                    "$push": {
+                        "servicos.robotizacao": {
+                            "nomeServico": "NFSE_ESCRITURACAO",
+                            "ativo": True
+                        }
+                    }
+                }
             )
 
-            if empresa:
-                return self.ir.respond(True, "", empresa)
-            return self.ir.respond(
-                False, f"Empresa com o CNPJ \"{nfse.get('cnpjCpfTomador')}\" não foi encontrada no Motor Fiscal",
-                f"Empresa com o CNPJ \"{nfse.get('cnpjCpfTomador')}\" não foi encontrada no Motor Fiscal"
-            )
+            if result.modified_count > 0:
+                return True
+            return False
         except Exception as e:
-            return self.ir.respond(False, "Erro ao buscar a empresa", {"erro": e})
- 
- 
+            print(f"Erro ao adicionar robotização para o CNPJ {cnpj}: {e}")
+            return False
+    
     def salvar_screenshot_nfse(self, id_nfse: ObjectId, screenshot_bytes: bytes) -> Dict[str, any]:
 
         try:

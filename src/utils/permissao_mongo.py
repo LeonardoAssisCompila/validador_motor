@@ -5,3 +5,6 @@ banco = Banco_Mongo()
 id_conta = banco.buscar_id_conta_por_email("motor_teste@gmail.com")
 print(id_conta)
 
+#Liberar escrituração
+ok = banco.adicionar_robotizacao_nfse_por_cnpj("43456133000180")
+print(ok)
