@@ -7,6 +7,7 @@ from db_mongo.banco_mongo import Banco_Mongo
 from templates import robo_acesso
 from templates import robo_cadastro
 from config_dados import cnpj
+import os
 
 #TODO lembra de coloca a função que deleta conta nesse modulo ainda
 
@@ -24,11 +25,10 @@ def validar_sucesso(driver: webdriver.Firefox) -> bool:
 def inicio(driver: webdriver.Firefox):
     try:
         # chama o robô de cadastro e, se der certo, continua o fluxo deste robô
-        sucesso_cadastro = robo_cadastro.inicio(driver, fechar_driver=False)
-
-        if not sucesso_cadastro:
-            print("Cadastro não foi concluído com sucesso. Encerrando o fluxo de download.")
-            return False
+        #sucesso_cadastro = robo_cadastro.inicio(driver, fechar_driver=False)
+        #if not sucesso_cadastro:
+        #    print("Cadastro não foi concluído com sucesso. Encerrando o fluxo de download.")
+        #    return False
         
         sucesso_acesso = robo_acesso.inicio(driver, fechar_driver=False)
 
@@ -39,20 +39,50 @@ def inicio(driver: webdriver.Firefox):
         #Função para ativar uploardPlanilha Escrituração
         banco = Banco_Mongo()
         uploard_planilha = banco.adicionar_robotizacao_nfse_por_cnpj(cnpj)
-        print(uploard_planilha)
+        print(f'Ativação do Serviço de UploadPlanilha - {uploard_planilha}')
+
+        #Pagina recebidas
+        driver.get('https://app.motorfiscal.com.br/consulta-nfes/recebidas')
+
 
         try:
-            mensagem_tour = WebDriverWait(driver, 5).until(
+            mensagem_tour = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, '//button[contains(text(),"Pular Tour")]'))
             )
             mensagem_tour.click()
 
-        except TimeoutError:
+        except TimeoutException:
             pass
         
-        #Pagina recebidas
-        driver.get('https://app.motorfiscal.com.br/consulta-nfes/recebidas')
-        
+        wait = WebDriverWait(driver, 10)
+        aba_nfse = wait.until(
+            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Consulta NFs-e')]"))
+        )
+        aba_nfse.click()
+
+        aba_recebidas = wait.until(
+            EC.element_to_be_clickable((By.XPATH, '//a[@href="/consulta-nfses/recebidas"]'))
+        )
+        aba_recebidas.click()
+
+        botao_upload = wait.until(
+            EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Upload planilha')]"))
+        )
+        botao_upload.click()
+
+        #Vamos enviar a planilha (dentro de src/planilha/planilha_nfse.xlsx)
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        caminho_arquivo = os.path.join(base_dir, "planilha", "planilha_nfse.xlsx")
+
+        input_file = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@type='file']")))
+        input_file.send_keys(caminho_arquivo)
+
+        botao_enviar = wait.until(
+            EC.element_to_be_clickable((By.XPATH, "//button[.='Enviar']"))
+        )
+        botao_enviar.click()
+
+
         validar_sucesso(driver)
 
         return True
