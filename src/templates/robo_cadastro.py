@@ -5,6 +5,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
 
+#TODO lembra de coloca a função que deleta conta nesse modulo ainda
+
 def validar_sucesso(driver: webdriver.Firefox) -> bool:
 
     try:
@@ -16,12 +18,8 @@ def validar_sucesso(driver: webdriver.Firefox) -> bool:
         return False
 
 
-def inicio():
-    driver = None
+def inicio(driver: webdriver.Firefox):
     try:
-        driver = webdriver.Firefox()
-        driver.get('https://app.motorfiscal.com.br/entrar')
-        
         button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, '//a[contains(@href, "/cadastrar")]'))
         )
@@ -118,4 +116,10 @@ def inicio():
         if driver is not None:
             driver.quit()
 
-inicio()
+if __name__ == "__main__":
+    driver = webdriver.Firefox()
+    try:
+        driver.get('https://app.motorfiscal.com.br/entrar')
+        inicio(driver)
+    finally:
+        driver.quit()
