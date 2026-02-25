@@ -3,7 +3,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from templates import robo_acesso
+from templates import robo_cadastro
 
+#TODO lembra de coloca a função que deleta conta nesse modulo ainda
 
 def validar_sucesso(driver: webdriver.Firefox) -> bool:
 
@@ -16,33 +19,32 @@ def validar_sucesso(driver: webdriver.Firefox) -> bool:
         return False
 
 
-def inicio(driver: webdriver.Firefox, fechar_driver: bool = True) -> bool:
+def inicio(driver: webdriver.Firefox):
     try:
+        # chama o robô de cadastro e, se der certo, continua o fluxo deste robô
+        sucesso_cadastro = robo_cadastro.inicio(driver, fechar_driver=False)
 
-        email = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.XPATH, "//input[@name='email']"))
-        )
-        email.send_keys('motor_teste@gmail.com')
-    
-        senha = driver.find_element(By.XPATH, "//input[@name='password']")
-        senha.send_keys("Leonardo1!")
+        if not sucesso_cadastro:
+            print("Cadastro não foi concluído com sucesso. Encerrando o fluxo de download.")
+            return False
         
-        #Entrar
-        button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[@class='sc-eDLKkx iTXGwv']"))
-        )
-        button.click()
+        sucesso_acesso = robo_acesso.inicio(driver, fechar_driver=False)
+
+        if not sucesso_acesso:
+            print("Acesso não foi concluido ")
+            return False
+
 
         # validação final de sucesso
-        sucesso = validar_sucesso(driver)
+        validar_sucesso(driver)
 
         input("Pressione ENTER para fechar o navegador...")
-        return sucesso
+        return True
     except Exception as e:
         print("Erro navegação da Pagina do motor fiscal:", e)
         return False
     finally:
-        if fechar_driver and driver is not None:
+        if driver is not None:
             driver.quit()
 
 if __name__ == "__main__":

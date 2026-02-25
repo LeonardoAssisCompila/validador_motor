@@ -1,11 +1,8 @@
 import os
 from templates import robo_cadastro
+from templates import robo_download_nfs
+from templates import robo_acesso
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-
 
 
 def limpar():
@@ -30,6 +27,8 @@ def menu():
     print(f"{amarelo}[ 2 ]{reset} - Teste de Download de NFS-e")
     print(f"{amarelo}[ 3 ]{reset} - Teste de Download de NF-e")
     print(f"{amarelo}[ 4 ]{reset} - Teste de Download de CT-e")
+    print(f"{amarelo}[ 5 ]{reset} - Teste de Acesso ao Motor")
+
 
     print("\n" + "=" * 50)
 
@@ -50,5 +49,9 @@ driver.get('https://app.motorfiscal.com.br/entrar')
 
 if usuario == 1:
     robo_cadastro.inicio(driver)
+elif usuario == 2:
+    robo_download_nfs.inicio(driver)
+elif usuario == 5:
+    robo_acesso.inicio(driver)
 else:
     print(f"\n Você escolheu a opção {usuario}, mas ainda não está implementada.")

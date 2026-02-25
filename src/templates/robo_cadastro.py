@@ -5,8 +5,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
 
-#TODO lembra de coloca a função que deleta conta nesse modulo ainda
-
 def validar_sucesso(driver: webdriver.Firefox) -> bool:
 
     try:
@@ -18,7 +16,7 @@ def validar_sucesso(driver: webdriver.Firefox) -> bool:
         return False
 
 
-def inicio(driver: webdriver.Firefox):
+def inicio(driver: webdriver.Firefox, fechar_driver: bool = True) -> bool:
     try:
         button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, '//a[contains(@href, "/cadastrar")]'))
@@ -36,7 +34,6 @@ def inicio(driver: webdriver.Firefox):
         telefone = driver.find_element(By.ID, "form_cadastro-telefone")
         telefone.send_keys("11956128238")
 
-        #lembra de colocar a mensagem Senha deve conter: mínimo 8 caracteres, números, letras maiúsculas, caracteres especiais
         telefone = driver.find_element(By.ID, "form_cadastro-pass")
         telefone.send_keys("Leonardo1!")
 
@@ -107,13 +104,15 @@ def inicio(driver: webdriver.Firefox):
         pula_depois.click()
 
         # validação final de sucesso
-        validar_sucesso(driver)
+        sucesso = validar_sucesso(driver)
 
         input("Pressione ENTER para fechar o navegador...")
+        return sucesso
     except Exception as e:
         print("Erro navegação da Pagina do motor fiscal:", e)
+        return False
     finally:
-        if driver is not None:
+        if fechar_driver and driver is not None:
             driver.quit()
 
 if __name__ == "__main__":
