@@ -1,7 +1,16 @@
 import os
+from templates import robo_cadastro
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
+
+
 
 def limpar():
     os.system("clear") 
+
 
 def menu():
     limpar()
@@ -35,4 +44,11 @@ def menu():
             print("Digite apenas números.")
 
 usuario = menu()
-print(f"\n Você escolheu a opção {usuario}")
+
+driver = webdriver.Firefox()
+driver.get('https://app.motorfiscal.com.br/entrar')
+
+if usuario == 1:
+    robo_cadastro.inicio(driver)
+else:
+    print(f"\n Você escolheu a opção {usuario}, mas ainda não está implementada.")
