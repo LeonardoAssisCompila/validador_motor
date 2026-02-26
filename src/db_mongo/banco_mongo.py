@@ -30,6 +30,55 @@ class Banco_Mongo():
         configuracao_conta = usuario.get("configuracao_conta") or {}
         return configuracao_conta.get("conta")
     
+    # Apago a conta desse usuario (collection: contas) usando o id da conta
+    def apagar_conta_cnpj(self, cnpj: str, id_conta: str) -> bool:
+        try:
+            result = self.db.contas.delete_one(
+                {
+                    "_id": ObjectId(id_conta)
+                }
+            )
+
+            if result.deleted_count > 0:
+                return True
+            return False
+        except Exception as e:
+            print(f"Erro ao apagar conta {id_conta} (CNPJ {cnpj}): {e}")
+            return False
+
+    # Apago o usuario pelo email (collection: usuarios)
+    def apagar_usuario_por_email(self, email: str) -> bool:
+        try:
+            result = self.collection.delete_one(
+                {
+                    "email": email
+                }
+            )
+
+            if result.deleted_count > 0:
+                return True
+            return False
+        except Exception as e:
+            print(f"Erro ao apagar usuário com email {email}: {e}")
+            return False
+
+
+    # Apago a conta desse usuario (collection: contas) usando o id da conta
+    def apagar_empresa_cnpj(self, cnpj: str, id_conta: str) -> bool:
+        try:
+            result = self.db.empresas.delete_one(
+                {
+                    "cnpj": cnpj,
+                }
+            )
+
+            if result.deleted_count > 0:
+                return True
+            return False
+        except Exception as e:
+            print(f"Erro ao apagar empresa (CNPJ {cnpj}): {e}")
+            return False
+
 
     #entra na colletion empresas e consulta cnpj, adicionando servico de robotizacao
     def adicionar_robotizacao_nfse_por_cnpj(self, cnpj: str):
@@ -52,6 +101,25 @@ class Banco_Mongo():
         except Exception as e:
             print(f"Erro ao adicionar robotização para o CNPJ {cnpj}: {e}")
             return False
+        
+
+    #Apagar nota que fez upload 
+    def apagar_nota_nfse_do_cnpj(self, cnpj: str):
+        try:
+            result = self.db.nfses.delete_one(
+                {
+                    "cnpjCpfTomador": cnpj,
+                    "status_escrituracao": "pendente"
+                }
+            )
+
+            if result.deleted_count > 0:
+                return True
+            return False
+        except Exception as e:
+            print(f"Erro ao apagar nota para o CNPJ {cnpj}: {e}")
+            return False
+   
     
     def salvar_screenshot_nfse(self, id_nfse: ObjectId, screenshot_bytes: bytes) -> Dict[str, any]:
 

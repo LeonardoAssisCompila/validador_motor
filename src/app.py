@@ -4,6 +4,7 @@ from templates import robo_download_nfse
 from templates import robo_acesso
 from selenium import webdriver
 from config_dados import cnpj, cnpj_formatado, email, telefone, senha, razao
+import time
 
 
 def limpar():
@@ -17,6 +18,7 @@ def menu():
     azul = "\033[94m"
     amarelo = "\033[93m"
     reset = "\033[0m"
+    vermelho = "\033[91m"
 
     print(verde + "=" * 50)
     print("VALIDADOR DO MOTOR FISCAL".center(50))
@@ -45,6 +47,8 @@ def menu():
 
 usuario = menu()
 
+inicio_teste = time.time()
+
 driver = webdriver.Firefox()
 driver.get('https://app.motorfiscal.com.br/entrar')
 
@@ -56,3 +60,9 @@ elif usuario == 5:
     robo_acesso.inicio(driver)
 else:
     print(f"\n Você escolheu a opção {usuario}, mas ainda não está implementada.")
+
+fim_teste = time.time()
+duracao_segundos = fim_teste - inicio_teste
+duracao_minutos = duracao_segundos / 60
+
+print(f"\nTempo total de execução: {duracao_segundos:.2f} segundos (~{duracao_minutos:.2f} minutos).")
