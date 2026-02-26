@@ -64,7 +64,7 @@ class Banco_Mongo():
 
 
     # Apago a conta desse usuario (collection: contas) usando o id da conta
-    def apagar_empresa_cnpj(self, cnpj: str, id_conta: str) -> bool:
+    def apagar_empresa_cnpj(self, cnpj: str) -> bool:
         try:
             result = self.db.empresas.delete_one(
                 {

@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException
 from db_mongo.banco_mongo import Banco_Mongo
 from templates import robo_acesso
 from templates import robo_cadastro
@@ -26,6 +26,7 @@ def inicio(driver: webdriver.Firefox):
         amarelo = "\033[93m"
         vermelho = "\033[91m"
         verde = "\033[92m"
+        azul = "\033[94m"
 
         # chama o robô de cadastro e, se der certo, continua o fluxo deste robô
         #sucesso_cadastro = robo_cadastro.inicio(driver, fechar_driver=False)
@@ -77,34 +78,41 @@ def inicio(driver: webdriver.Firefox):
         )
         aba_recebidas.click()
 
-        botao_upload = wait.until(
-            EC.element_to_be_clickable((
-                By.XPATH,
-                "//button[contains(., 'Upload planilha') or contains(., 'Upload')]"
-            ))
-        )
-        
-        botao_upload.click()
+        wait = WebDriverWait(driver, 30)
 
-        # Aguarda eventual overlay de carregamento sair da frente do botão
         try:
             WebDriverWait(driver, 30).until(
                 EC.invisibility_of_element_located((By.CSS_SELECTOR, "div.sc-lnsjTu.fTQwpL"))
             )
         except TimeoutException:
             print("Aviso: overlay de carregamento não sumiu; tentando clicar assim mesmo.")
-        
+
         try:
+
+            try:
+                botao_upload = wait.until(
+                    EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Upload planilha')]"))
+                )
+            except:
+                botao_upload = wait.until(
+                    EC.element_to_be_clickable((By.XPATH, "(//button[contains(., 'Upload')])[2]"))
+                )
+
             botao_upload.click()
-        except Exception:
+        except ElementClickInterceptedException:
             driver.execute_script("arguments[0].click();", botao_upload)
 
-        #Vamos enviar a planilha (dentro de src/planilha/planilha_nfse.xlsx)
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        caminho_arquivo = os.path.join(base_dir, "planilha", "planilha_nfse.xlsx")
 
-        input_file = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@type='file']")))
-        input_file.send_keys(caminho_arquivo)
+        enviar = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        caminho_arquivo = os.path.join(enviar, "planilha", "planilha_nfse.xlsx")
+
+        try:
+            print(f'{azul} ENVIANDO PLANILHA PARA O MOTOR')
+            input_file = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@type='file']")))
+            input_file.send_keys(caminho_arquivo)
+        except:
+            input_file = wait.until(EC.presence_of_element_located((By.XPATH, "//button[contains(., 'Escolher arquivos')]")))
+            input_file.send_keys(caminho_arquivo)
 
         botao_enviar = wait.until(
             EC.element_to_be_clickable((By.XPATH, "//button[.='Enviar']"))
@@ -137,22 +145,28 @@ def inicio(driver: webdriver.Firefox):
         
         #consulta na colletion usuario passando o email para pega o id da conta
         id_conta = banco.buscar_id_conta_por_email(email)
-        print(id_conta)        
-
+        print(f'{azul} CNPJ{cnpj} id:{id_conta}')        
+      
         #Vamos apagar a conta
         apagar_conta = banco.apagar_conta_cnpj(cnpj, id_conta)
-        print(apagar_conta)
+        if apagar_nota == True:
+            print(f'{verde}CNPJ{cnpj} Conta Apagada:{apagar_conta}')        
+        else:
+            print(f'{vermelho}ERRO: CNPJ{cnpj} Conta Apagada:{apagar_conta}')        
 
         #Vamos apagar o usuario
         apagar_usuario = banco.apagar_usuario_por_email(email)
-        print(apagar_usuario)
+        if apagar_nota == True:
+            print(f'{verde}CNPJ{cnpj} Usuário Apagada:{apagar_usuario}')        
+        else:
+            print(f'{vermelho}ERRO: CNPJ{cnpj} Usuário Apagada:{apagar_usuario}')        
 
         #Vamos apagar o empresa
         apagar_empresa = banco.apagar_empresa_cnpj(cnpj)
-        print(apagar_empresa)
-
-
-
+        if apagar_nota == True:
+            print(f'{verde}CNPJ{cnpj} Empresa Apagada:{apagar_empresa}')        
+        else:
+            print(f'{vermelho}ERRO: CNPJ{cnpj} Empresa Apagada:{apagar_empresa}')        
 
         validar_sucesso(driver)
 
@@ -171,4 +185,3 @@ if __name__ == "__main__":
         inicio(driver)
     finally:
         driver.quit()
-
