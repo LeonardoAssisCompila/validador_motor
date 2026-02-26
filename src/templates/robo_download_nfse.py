@@ -9,7 +9,6 @@ from templates import robo_cadastro
 from config_dados import cnpj, email
 import os
 
-#TODO lembra de coloca a função que deleta conta nesse modulo ainda
 
 def validar_sucesso(driver: webdriver.Firefox) -> bool:
 
@@ -50,10 +49,19 @@ def inicio(driver: webdriver.Firefox):
 
 
         try:
-            mensagem_tour = WebDriverWait(driver, 10).until(
+            mensagem_tour = WebDriverWait(driver, 5).until(
                 EC.element_to_be_clickable((By.XPATH, '//button[contains(text(),"Pular Tour")]'))
             )
             mensagem_tour.click()
+
+        except TimeoutException:
+            pass
+
+        try:
+            avisos = WebDriverWait(driver, 5).until(
+                EC.element_to_be_clickable((By.XPATH, '//button[contains(text(),"OK")]'))
+            )
+            avisos.click()
 
         except TimeoutException:
             pass
@@ -70,8 +78,13 @@ def inicio(driver: webdriver.Firefox):
         aba_recebidas.click()
 
         botao_upload = wait.until(
-            EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Upload planilha')]"))
+            EC.element_to_be_clickable((
+                By.XPATH,
+                "//button[contains(., 'Upload planilha') or contains(., 'Upload')]"
+            ))
         )
+        
+        botao_upload.click()
 
         # Aguarda eventual overlay de carregamento sair da frente do botão
         try:
@@ -102,16 +115,22 @@ def inicio(driver: webdriver.Firefox):
         try:
             print(f"{amarelo} Processando Planilha... tempo maximo 120 segundos")
 
-            WebDriverWait(driver, 120).until(
+            #volta para 120
+            WebDriverWait(driver, 20).until(
                 EC.invisibility_of_element_located((By.XPATH, "//h2[normalize-space()='Carregar Planilha']"))
             )
 
             #Resumo do Processamento
-            WebDriverWait(driver,120).until(
+            WebDriverWait(driver,20).until(
                 EC.element_to_be_clickable((By.XPATH, "//h2[contains(., 'Resumo do Processamento')]"))
             )
+
             #Função para apagar a nota no banco deixei a nota com erro depois passa pendente s
-            banco.apagar_nota_nfse_do_cnpj(cnpj)
+            apagar_nota = banco.apagar_nota_nfse_do_cnpj(cnpj)
+            if apagar_nota == True:
+                print(f'{verde} Nota apagada do banco do CNPJ: {cnpj}')
+            else:
+                print(f'{vermelho} Erro ao apagar nota do CNPJ: {cnpj}')
         
         except TimeoutException:
             print(f"{vermelho}Timeout: processamento excedeu o tempo limite de 120 segundos.")
@@ -121,14 +140,18 @@ def inicio(driver: webdriver.Firefox):
         print(id_conta)        
 
         #Vamos apagar a conta
-        apagou = banco.apagar_conta_cnpj(cnpj, id_conta)
-        print(apagou)
+        apagar_conta = banco.apagar_conta_cnpj(cnpj, id_conta)
+        print(apagar_conta)
 
-        
-        if resp_db == True:
-            print(f'{verde} Nota apagada do banco do CNPJ: {cnpj}')
-        else:
-            print(f'{vermelho} Erro ao apagar nota do CNPJ: {cnpj}')
+        #Vamos apagar o usuario
+        apagar_usuario = banco.apagar_usuario_por_email(email)
+        print(apagar_usuario)
+
+        #Vamos apagar o empresa
+        apagar_empresa = banco.apagar_empresa_cnpj(cnpj)
+        print(apagar_empresa)
+
+
 
 
         validar_sucesso(driver)
