@@ -52,6 +52,25 @@ class Banco_Mongo():
         except Exception as e:
             print(f"Erro ao adicionar robotização para o CNPJ {cnpj}: {e}")
             return False
+        
+
+    #Apagar nota que fez upload 
+    def apagar_nota_nfse_do_cnpj(self, cnpj: str):
+        try:
+            result = self.db.nfses.delete_many(
+                {
+                    "cnpjCpfTomador": cnpj,
+                    "status_escrituracao": "pendente"
+                }
+            )
+
+            if result.deleted_count > 0:
+                return True
+            return False
+        except Exception as e:
+            print(f"Erro ao apagar nota para o CNPJ {cnpj}: {e}")
+            return False
+   
     
     def salvar_screenshot_nfse(self, id_nfse: ObjectId, screenshot_bytes: bytes) -> Dict[str, any]:
 

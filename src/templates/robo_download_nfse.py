@@ -18,12 +18,16 @@ def validar_sucesso(driver: webdriver.Firefox) -> bool:
         print("Cadastro realizado com sucesso!")
         return True
     except TimeoutException:
-        print("Não foi possível confirmar o sucesso do cadastro (URL não mudou).")
+        print("Não foi possível confirmar o sucesso do cadastro.")
         return False
 
 
 def inicio(driver: webdriver.Firefox):
     try:
+        amarelo = "\033[93m"
+        vermelho = "\033[91m"
+        verde = "\033[92m"
+
         # chama o robô de cadastro e, se der certo, continua o fluxo deste robô
         #sucesso_cadastro = robo_cadastro.inicio(driver, fechar_driver=False)
         #if not sucesso_cadastro:
@@ -38,8 +42,8 @@ def inicio(driver: webdriver.Firefox):
 
         #Função para ativar uploardPlanilha Escrituração
         banco = Banco_Mongo()
-        uploard_planilha = banco.adicionar_robotizacao_nfse_por_cnpj(cnpj)
-        print(f'Ativação do Serviço de UploadPlanilha - {uploard_planilha}')
+        #uploard_planilha = banco.adicionar_robotizacao_nfse_por_cnpj(cnpj)
+        #print(f'Ativação do Serviço de UploadPlanilha - {uploard_planilha}')
 
         #Pagina recebidas
         driver.get('https://app.motorfiscal.com.br/consulta-nfes/recebidas')
@@ -54,7 +58,7 @@ def inicio(driver: webdriver.Firefox):
         except TimeoutException:
             pass
         
-        wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, 30)
         aba_nfse = wait.until(
             EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Consulta NFs-e')]"))
         )
@@ -68,7 +72,19 @@ def inicio(driver: webdriver.Firefox):
         botao_upload = wait.until(
             EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Upload planilha')]"))
         )
-        botao_upload.click()
+
+        # Aguarda eventual overlay de carregamento sair da frente do botão
+        try:
+            WebDriverWait(driver, 30).until(
+                EC.invisibility_of_element_located((By.CSS_SELECTOR, "div.sc-lnsjTu.fTQwpL"))
+            )
+        except TimeoutException:
+            print("Aviso: overlay de carregamento não sumiu; tentando clicar assim mesmo.")
+        
+        try:
+            botao_upload.click()
+        except Exception:
+            driver.execute_script("arguments[0].click();", botao_upload)
 
         #Vamos enviar a planilha (dentro de src/planilha/planilha_nfse.xlsx)
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -82,12 +98,37 @@ def inicio(driver: webdriver.Firefox):
         )
         botao_enviar.click()
 
+        #Esperar carregar
+        try:
+            print(f"{amarelo} Processando Planilha... tempo maximo 120 segundos")
+
+            WebDriverWait(driver, 120).until(
+                EC.invisibility_of_element_located((By.XPATH, "//h2[normalize-space()='Carregar Planilha']"))
+            )
+
+            #Resumo do Processamento
+            WebDriverWait(driver,120).until(
+                EC.element_to_be_clickable((By.XPATH, "//h2[contains(., 'Resumo do Processamento')]"))
+            )
+            #Função para apagar a nota no banco deixei a nota com erro depois passa pendente s
+            banco.apagar_nota_nfse_do_cnpj(cnpj)
+        
+        except TimeoutException:
+            print(f"{vermelho}Timeout: processamento excedeu o tempo limite de 120 segundos.")
+        
+        resp_db = banco.apagar_nota_nfse_do_cnpj(cnpj)
+        
+        if resp_db == True:
+            print(f'{verde} Nota apagada do banco do CNPJ: {cnpj}')
+        else:
+            print(f'{vermelho} Erro ao apagar nota do CNPJ: {cnpj}')
+
 
         validar_sucesso(driver)
 
         return True
     except Exception as e:
-        print("Erro navegação da Pagina do motor fiscal:", e)
+        print(f"{vermelho}Erro navegação da Pagina do motor fiscal:", e)
         return False
     finally:
         if driver is not None:
