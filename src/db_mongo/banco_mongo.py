@@ -109,7 +109,7 @@ class Banco_Mongo():
             result = self.db.nfses.delete_one(
                 {
                     "cnpjCpfTomador": cnpj,
-                    "status_escrituracao": "Erro"
+                    "status_escrituracao": "pendente"
                 }
             )
 

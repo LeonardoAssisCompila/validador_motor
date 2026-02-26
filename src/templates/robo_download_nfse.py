@@ -28,11 +28,11 @@ def inicio(driver: webdriver.Firefox):
         verde = "\033[92m"
         azul = "\033[94m"
 
-        # chama o robô de cadastro e, se der certo, continua o fluxo deste robô
-        #sucesso_cadastro = robo_cadastro.inicio(driver, fechar_driver=False)
-        #if not sucesso_cadastro:
-        #    print("Cadastro não foi concluído com sucesso. Encerrando o fluxo de download.")
-        #    return False
+        ##chama o robô de cadastro e, se der certo, continua o fluxo deste robô
+        sucesso_cadastro = robo_cadastro.inicio(driver, fechar_driver=False)
+        if not sucesso_cadastro:
+            print("Cadastro não foi concluído com sucesso. Encerrando o fluxo de download.")
+            return False
         
         sucesso_acesso = robo_acesso.inicio(driver, fechar_driver=False)
 
@@ -40,10 +40,10 @@ def inicio(driver: webdriver.Firefox):
             print("Acesso não foi concluido ")
             return False
 
-        #Função para ativar uploardPlanilha Escrituração
+        ##Função para ativar uploardPlanilha Escrituração
         banco = Banco_Mongo()
-        #uploard_planilha = banco.adicionar_robotizacao_nfse_por_cnpj(cnpj)
-        #print(f'Ativação do Serviço de UploadPlanilha - {uploard_planilha}')
+        uploard_planilha = banco.adicionar_robotizacao_nfse_por_cnpj(cnpj)
+        print(f'Ativação do Serviço de UploadPlanilha - {uploard_planilha}')
 
         #Pagina recebidas
         driver.get('https://app.motorfiscal.com.br/consulta-nfes/recebidas')
@@ -124,21 +124,19 @@ def inicio(driver: webdriver.Firefox):
             print(f"{amarelo} Processando Planilha... tempo maximo 120 segundos")
 
             #volta para 120
-            WebDriverWait(driver, 20).until(
+            WebDriverWait(driver, 120).until(
                 EC.invisibility_of_element_located((By.XPATH, "//h2[normalize-space()='Carregar Planilha']"))
             )
 
             #Resumo do Processamento
-            WebDriverWait(driver,20).until(
+            WebDriverWait(driver,120).until(
                 EC.element_to_be_clickable((By.XPATH, "//h2[contains(., 'Resumo do Processamento')]"))
             )
 
             #Função para apagar a nota no banco deixei a nota com erro depois passa pendente s
             apagar_nota = banco.apagar_nota_nfse_do_cnpj(cnpj)
-            if apagar_nota == True:
-                print(f'{verde} Nota apagada do banco do CNPJ: {cnpj}')
-            else:
-                print(f'{vermelho} Erro ao apagar nota do CNPJ: {cnpj}')
+            print(f'{verde} Nota apagada do banco do CNPJ: {cnpj}')
+
         
         except TimeoutException:
             print(f"{vermelho}Timeout: processamento excedeu o tempo limite de 120 segundos.")
@@ -149,25 +147,18 @@ def inicio(driver: webdriver.Firefox):
       
         #Vamos apagar a conta
         apagar_conta = banco.apagar_conta_cnpj(cnpj, id_conta)
-        if apagar_nota == True:
-            print(f'{verde}CNPJ{cnpj} Conta Apagada:{apagar_conta}')        
-        else:
-            print(f'{vermelho}ERRO: CNPJ{cnpj} Conta Apagada:{apagar_conta}')        
+        print(f'{verde}CNPJ{cnpj} Conta Apagada:{apagar_conta}')        
+      
 
         #Vamos apagar o usuario
         apagar_usuario = banco.apagar_usuario_por_email(email)
-        if apagar_nota == True:
-            print(f'{verde}CNPJ{cnpj} Usuário Apagada:{apagar_usuario}')        
-        else:
-            print(f'{vermelho}ERRO: CNPJ{cnpj} Usuário Apagada:{apagar_usuario}')        
+        print(f'{verde}CNPJ{cnpj} Usuário Apagada:{apagar_usuario}')        
+  
 
         #Vamos apagar o empresa
         apagar_empresa = banco.apagar_empresa_cnpj(cnpj)
-        if apagar_nota == True:
-            print(f'{verde}CNPJ{cnpj} Empresa Apagada:{apagar_empresa}')        
-        else:
-            print(f'{vermelho}ERRO: CNPJ{cnpj} Empresa Apagada:{apagar_empresa}')        
-
+        print(f'{verde}CNPJ{cnpj} Empresa Apagada:{apagar_empresa}')        
+       
         validar_sucesso(driver)
 
         return True
