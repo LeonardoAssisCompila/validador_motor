@@ -6,7 +6,7 @@ from selenium.common.exceptions import TimeoutException
 from db_mongo.banco_mongo import Banco_Mongo
 from templates import robo_acesso
 from templates import robo_cadastro
-from config_dados import cnpj
+from config_dados import cnpj, email
 import os
 
 #TODO lembra de coloca a função que deleta conta nesse modulo ainda
@@ -116,7 +116,14 @@ def inicio(driver: webdriver.Firefox):
         except TimeoutException:
             print(f"{vermelho}Timeout: processamento excedeu o tempo limite de 120 segundos.")
         
-        resp_db = banco.apagar_nota_nfse_do_cnpj(cnpj)
+        #consulta na colletion usuario passando o email para pega o id da conta
+        id_conta = banco.buscar_id_conta_por_email(email)
+        print(id_conta)        
+
+        #Vamos apagar a conta
+        apagou = banco.apagar_conta_cnpj(cnpj, id_conta)
+        print(apagou)
+
         
         if resp_db == True:
             print(f'{verde} Nota apagada do banco do CNPJ: {cnpj}')
@@ -141,3 +148,4 @@ if __name__ == "__main__":
         inicio(driver)
     finally:
         driver.quit()
+
