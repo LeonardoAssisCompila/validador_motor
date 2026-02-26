@@ -16,10 +16,10 @@ def validar_sucesso(driver: webdriver.Firefox) -> bool:
 
     try:
         WebDriverWait(driver, 20).until_not(EC.url_contains("/cadastrar"))
-        print(f"{verde}Cadastro realizado com sucesso!")
+        print(f"{verde}realizado acesso no motor com sucesso!")
         return True
     except TimeoutException:
-        print(f"{vermelho}Não foi possível confirmar o sucesso do cadastro.")
+        print(f"{vermelho}Não foi possível confirmar o sucesso do acesso.")
         return False
 
 
