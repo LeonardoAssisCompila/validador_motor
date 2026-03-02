@@ -1,10 +1,11 @@
 import os
+import time
+from selenium import webdriver
 from templates import robo_cadastro
 from templates import robo_download_nfse
+from templates import robo_download_nfe
+from templates import robo_download_cte
 from templates import robo_acesso
-from selenium import webdriver
-from config_dados import cnpj, cnpj_formatado, email, telefone, senha, razao
-import time
 
 
 def limpar():
@@ -38,10 +39,10 @@ def menu():
     while True:
         try:
             opcao = int(input("\nDigite o número do teste desejado: "))
-            if opcao in [1, 2, 3, 4]:
+            if opcao in [1, 2, 3, 4, 5]:
                 return opcao
             else:
-                print("Opção inválida. Escolha entre 1 e 4.")
+                print("Opção inválida. Escolha entre 1 e 5.")
         except ValueError:
             print("Digite apenas números.")
 
@@ -56,6 +57,10 @@ if usuario == 1:
     robo_cadastro.inicio(driver)
 elif usuario == 2:
     robo_download_nfse.inicio(driver)
+elif usuario == 3:
+    robo_download_nfe.inicio(driver)
+elif usuario == 4:
+    robo_download_cte.inicio(driver)
 elif usuario == 5:
     robo_acesso.inicio(driver)
 else:

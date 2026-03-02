@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException
+from utils.permissao_mongo import Padrao  
 from db_mongo.banco_mongo import Banco_Mongo
 from templates import robo_acesso
 from templates import robo_cadastro
@@ -29,10 +30,10 @@ def inicio(driver: webdriver.Firefox):
         azul = "\033[94m"
 
         ##chama o robô de cadastro e, se der certo, continua o fluxo deste robô
-        sucesso_cadastro = robo_cadastro.inicio(driver, fechar_driver=False)
-        if not sucesso_cadastro:
-            print("Cadastro não foi concluído com sucesso. Encerrando o fluxo de download.")
-            return False
+        #sucesso_cadastro = robo_cadastro.inicio(driver, fechar_driver=False)
+        #if not sucesso_cadastro:
+        #    print("Cadastro não foi concluído com sucesso. Encerrando o fluxo de download.")
+        #    return False
         
         sucesso_acesso = robo_acesso.inicio(driver, fechar_driver=False)
 
@@ -40,10 +41,10 @@ def inicio(driver: webdriver.Firefox):
             print("Acesso não foi concluido ")
             return False
 
-        ##Função para ativar uploardPlanilha Escrituração
+        ##Função para ativar serviço CTE
         banco = Banco_Mongo()
-        uploard_planilha = banco.adicionar_robotizacao_nfse_por_cnpj(cnpj)
-        print(f'Ativação do Serviço de UploadPlanilha - {uploard_planilha}')
+        ativacao_servico_cte = banco.adicionar_robotizacao_cte(cnpj)
+        print(f'Ativação do Serviço de CTE- {ativacao_servico_cte}')
 
         #Pagina recebidas
         driver.get('https://app.motorfiscal.com.br/consulta-nfes/recebidas')
@@ -66,18 +67,14 @@ def inicio(driver: webdriver.Firefox):
 
         except TimeoutException:
             pass
+
+        driver.rodar_js("""
+            const link = document.querySelector('a[href="/consulta-ctes/tomadas"]');
+            if (link) {
+                link.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            }
+            """)
         
-        wait = WebDriverWait(driver, 30)
-        aba_nfse = wait.until(
-            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(), 'Consulta NFs-e')]"))
-        )
-        aba_nfse.click()
-
-        aba_recebidas = wait.until(
-            EC.element_to_be_clickable((By.XPATH, '//a[@href="/consulta-nfses/recebidas"]'))
-        )
-        aba_recebidas.click()
-
         wait = WebDriverWait(driver, 30)
 
         try:
@@ -91,11 +88,11 @@ def inicio(driver: webdriver.Firefox):
 
             try:
                 botao_upload = wait.until(
-                    EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Upload planilha')]"))
+                    EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Upload XML')]"))
                 )
             except:
                 botao_upload = wait.until(
-                    EC.element_to_be_clickable((By.XPATH, "(//button[contains(., 'Upload')])[2]"))
+                    EC.element_to_be_clickable((By.XPATH, "//button[contains(normalize-space(),'Upload XML')]"))
                 )
 
             botao_upload.click()
@@ -104,7 +101,7 @@ def inicio(driver: webdriver.Firefox):
 
 
         enviar = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        caminho_arquivo = os.path.join(enviar, "planilha", "planilha_nfse.xlsx")
+        caminho_arquivo = os.path.join(enviar, "planilha", "nfse.xml")
 
         try:
             print(f'{azul} ENVIANDO PLANILHA PARA O MOTOR')
@@ -125,7 +122,7 @@ def inicio(driver: webdriver.Firefox):
 
             #volta para 120
             WebDriverWait(driver, 120).until(
-                EC.invisibility_of_element_located((By.XPATH, "//h2[normalize-space()='Carregar Planilha']"))
+                EC.invisibility_of_element_located((By.XPATH, "//h2[normalize-space()='Carregar notas fiscais (XML)']"))
             )
 
             #Resumo do Processamento

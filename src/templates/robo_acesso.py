@@ -52,7 +52,6 @@ def inicio(driver: webdriver.Firefox, fechar_driver: bool = True) -> bool:
                     break
 
             except Exception as e:
-                print(f"Erro na tentativa {tentativa + 1}: {e}")
                 time.sleep(2)
 
         # validação final de sucesso

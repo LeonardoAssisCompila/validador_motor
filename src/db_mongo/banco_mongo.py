@@ -101,6 +101,27 @@ class Banco_Mongo():
         except Exception as e:
             print(f"Erro ao adicionar robotização para o CNPJ {cnpj}: {e}")
             return False
+
+    #entra na colletion empresas e consulta cnpj, adicionando servico de robotizacao
+    def adicionar_robotizacao_cte(self, cnpj: str):
+        try:
+            result = self.db.empresas.update_one(
+                {"cnpj": cnpj},
+                {
+                    "$set": {
+                        "servicos.capturacao_cte": {
+                            "todos": True
+                        }
+                    }
+                }
+            )
+
+            if result.modified_count > 0:
+                return True
+            return False
+        except Exception as e:
+            print(f"Erro ao adicionar robotização CTE para o CNPJ {cnpj}: {e}")
+            return False
         
 
     #Apagar nota que fez upload 
