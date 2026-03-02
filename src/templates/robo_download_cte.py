@@ -29,11 +29,11 @@ def inicio(driver: webdriver.Firefox):
         verde = "\033[92m"
         azul = "\033[94m"
 
-        ##chama o robô de cadastro e, se der certo, continua o fluxo deste robô
-        #sucesso_cadastro = robo_cadastro.inicio(driver, fechar_driver=False)
-        #if not sucesso_cadastro:
-        #    print("Cadastro não foi concluído com sucesso. Encerrando o fluxo de download.")
-        #    return False
+        #chama o robô de cadastro e, se der certo, continua o fluxo deste robô
+        sucesso_cadastro = robo_cadastro.inicio(driver, fechar_driver=False)
+        if not sucesso_cadastro:
+            print("Cadastro não foi concluído com sucesso. Encerrando o fluxo de download.")
+            return False
         
         sucesso_acesso = robo_acesso.inicio(driver, fechar_driver=False)
 

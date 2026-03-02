@@ -52,19 +52,24 @@ inicio_teste = time.time()
 
 driver = webdriver.Firefox()
 driver.get('https://app.motorfiscal.com.br/entrar')
+vermelho = "\033[91m"
+azul = "\033[94m"
 
-if usuario == 1:
-    robo_cadastro.inicio(driver)
-elif usuario == 2:
-    robo_download_nfse.inicio(driver)
-elif usuario == 3:
-    robo_download_nfe.inicio(driver)
-elif usuario == 4:
-    robo_download_cte.inicio(driver)
-elif usuario == 5:
-    robo_acesso.inicio(driver)
+robos = {
+    1: robo_cadastro,
+    2: robo_download_nfse,
+    3: robo_download_nfe,
+    4: robo_download_cte,
+    5: robo_acesso
+}
+opcao = robos.get(usuario)
+
+if opcao:
+    servico_robo = opcao.__name__.split('.')[-1]
+    print(f'{azul} Inicializando o robo {servico_robo}')
+    opcao.inicio(driver)
 else:
-    print(f"\n Você escolheu a opção {usuario}, mas ainda não está implementada.")
+    print(f"{vermelho}\nVocê escolheu a opção {usuario}, mas ainda não está implementada.")
 
 fim_teste = time.time()
 duracao_segundos = fim_teste - inicio_teste
