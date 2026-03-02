@@ -28,14 +28,13 @@ def inicio(driver: webdriver.Firefox):
         verde = "\033[92m"
         azul = "\033[94m"
 
-        ##chama o robô de cadastro e, se der certo, continua o fluxo deste robô
+        #chama o robô de cadastro e, se der certo, continua o fluxo deste robô
         sucesso_cadastro = robo_cadastro.inicio(driver, fechar_driver=False)
         if not sucesso_cadastro:
             print("Cadastro não foi concluído com sucesso. Encerrando o fluxo de download.")
             return False
         
         sucesso_acesso = robo_acesso.inicio(driver, fechar_driver=False)
-
         if not sucesso_acesso:
             print("Acesso não foi concluido ")
             return False
@@ -133,14 +132,33 @@ def inicio(driver: webdriver.Firefox):
                 EC.element_to_be_clickable((By.XPATH, "//h2[contains(., 'Resumo do Processamento')]"))
             )
 
-            #Função para apagar a nota no banco deixei a nota com erro depois passa pendente s
-            apagar_nota = banco.apagar_nota_nfse_do_cnpj(cnpj)
-            print(f'{verde} Nota apagada do banco do CNPJ: {cnpj}')
-
-        
         except TimeoutException:
             print(f"{vermelho}Timeout: processamento excedeu o tempo limite de 120 segundos.")
-        
+            print(f"{amarelo}Verificando Status do UploadPlanilha na tela de Processamento ")
+
+            driver.get('https://app.motorfiscal.com.br/historico-de-processamento')
+            
+            
+            wait = WebDriverWait(driver, 20)
+
+            td = wait.until(
+                EC.presence_of_element_located((By.XPATH, "//td[button]"))
+            )
+
+            botao = td.find_element(By.TAG_NAME, "button")
+            status = botao.text.strip().lower()
+
+            print("Status:", status)
+
+            if status == "erro":
+                print(f"{vermelho} Deu Erro na Planilha ao fazer UploadPlanilha Verificar nota")
+            elif status == "sucesso":
+                print(f"{verde} Sucesso na Planilha ao fazer UploadPlanilha")
+
+        #Função para apagar a nota no banco deixei a nota com erro depois passa pendente s
+        apagar_nota = banco.apagar_nota_nfse_do_cnpj(cnpj)
+        print(f'{verde} Nota apagada do banco do CNPJ: {cnpj}')
+
         #consulta na colletion usuario passando o email para pega o id da conta
         id_conta = banco.buscar_id_conta_por_email(email)
         print(f'{azul} CNPJ{cnpj} id:{id_conta}')        
